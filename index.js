@@ -32,38 +32,54 @@ app.get("/", (request, response) => {
 });
 
 app.get("/info", (request, response) => {
-  response.send("<h1>Hello Bananas!</h1>");
+  const date = new Date();
+  response.send(`<h2>Phonebook has info for ${persons.length} people!</h2><br/>
+  <p>Time Of Request: ${date} <p>`);
 });
 
 app.get("/api/persons", (request, response) => {
   response.json(persons);
 });
 
-// app.get("/api/persons/:id", (request, response) => {
-//   const id = Number(request.params.id);
-//   const person = persons.find((person) => person.id === id);
-//   if (person) {
-//     response.json(person);
-//   } else {
-//     response.status(404).end();
-//   }
-// });
+app.get("/api/persons/:id", (request, response) => {
+  const id = Number(request.params.id);
+  const person = persons.find((person) => person.id === id);
+  if (person) {
+    response.json(person);
+  } else {
+    response.status(404).end();
+  }
+});
 
-// app.delete("/api/persons/:id", (request, response) => {
-//   const id = request.params.id;
-//   persons = persons.filter((person) => person.id != id);
+app.delete("/api/persons/:id", (request, response) => {
+  const id = request.params.id;
+  persons = persons.filter((person) => person.id != id);
 
-//   response.status(204).end();
-// });
+  response.status(204).end();
+});
 
-// app.post("/api/persons", (request, response) => {
-//   const person = request.body;
+app.post("/api/persons", (request, response) => {
+  const newPerson = request.body;
 
-//   console.log(persons.length + 1);
-//   //   person.id = (persons.length + 1).toString();
-//   persons.concat(person);
-//   response.json(person);
-// });
+  if (!newPerson.name) {
+    return response.status(400).json({
+      error: "Person Needs A Name",
+    });
+  } else if (!newPerson.number) {
+    return response.status(400).json({
+      error: "Person Needs A Number",
+    });
+  } else if (persons.find((person) => person.name === newPerson.name)) {
+    return response.status(400).json({
+      error: "Person Name Exists",
+    });
+  }
+  newPerson.id = Math.floor(Math.random() * 10000000000);
+
+  persons = persons.concat(newPerson);
+  console.log(persons);
+  response.json(newPerson);
+});
 
 const PORT = 3001;
 app.listen(PORT, () => {
