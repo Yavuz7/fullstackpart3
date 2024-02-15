@@ -1,8 +1,11 @@
-const http = require("http");
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
 
 app.use(express.json());
+app.use(
+  morgan(":method :url :status :res[content-length] - :response-time ms :body")
+);
 
 let persons = [
   {
@@ -74,10 +77,11 @@ app.post("/api/persons", (request, response) => {
       error: "Person Name Exists",
     });
   }
+  console.log(newPerson);
+  morgan.token("body", (request) => JSON.stringify(request.body));
   newPerson.id = Math.floor(Math.random() * 10000000000);
 
   persons = persons.concat(newPerson);
-  console.log(persons);
   response.json(newPerson);
 });
 
