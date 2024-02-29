@@ -2,11 +2,42 @@ const express = require("express");
 const morgan = require("morgan");
 const app = express();
 const cors = require("cors");
+const mongoose = require("mongoose");
+
+if (process.argv.length < 3) {
+  console.log("give password as argument");
+  process.exit(1);
+}
+
+const password = process.argv[2];
+
+const url = `mongodb+srv://yavuzyurtseven1:${password}@testclusterowo.nybeoyx.mongodb.net/phoneBook?retryWrites=true&w=majority&appName=TestClusterOwO`;
+
+mongoose.set("strictQuery", false);
+
+mongoose.connect(url);
+
+const entrySchema = new mongoose.Schema({
+  id: Number,
+  name: String,
+  number: String,
+});
+
+entrySchema.set("toJSON", {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString();
+    delete returnedObject._id;
+    delete returnedObject.__v;
+  },
+});
+
+const phoneEntry = mongoose.model("phoneEntry", entrySchema);
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static("dist"));
 app.use(morgan("tiny"));
+
 morgan.token("body", (request) => JSON.stringify(request.body));
 let persons = [
   {
@@ -31,10 +62,6 @@ let persons = [
   },
 ];
 
-// app.get("/", (request, response) => {
-//   response.send("<h1>Hello Bananas!</h1>");
-// });
-
 app.get("/info", (request, response) => {
   const date = new Date();
   response.send(`<h2>Phonebook has info for ${persons.length} people!</h2><br/>
@@ -42,7 +69,9 @@ app.get("/info", (request, response) => {
 });
 
 app.get("/api/persons", (request, response) => {
-  response.json(persons);
+  phoneEntry.find({}).then((persons) => {
+    response.json(persons);
+  });
 });
 
 app.get("/api/persons/:id", (request, response) => {
