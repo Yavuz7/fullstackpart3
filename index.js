@@ -11,28 +11,6 @@ app.use(express.static("dist"));
 app.use(morgan("tiny"));
 
 morgan.token("body", (request) => JSON.stringify(request.body));
-let persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
 
 app.get("/info", (request, response) => {
   const date = new Date();
@@ -74,17 +52,16 @@ app.post("/api/persons", (request, response) => {
     return response.status(400).json({
       error: "Person Needs A Number",
     });
-  } else if (persons.find((person) => person.name === newPerson.name)) {
-    return response.status(400).json({
-      error: "Person Name Exists",
-    });
   }
-  console.log(newPerson);
 
-  newPerson.id = Math.floor(Math.random() * 10000000000);
+  const newEntry = new phoneEntry({
+    name: newPerson.name,
+    number: newPerson.number,
+  });
 
-  persons = persons.concat(newPerson);
-  response.json(newPerson);
+  newEntry.save().then((newPerson) => {
+    response.json(newPerson);
+  });
 });
 
 const PORT = process.env.PORT;

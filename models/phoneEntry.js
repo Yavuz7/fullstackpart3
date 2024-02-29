@@ -14,7 +14,6 @@ mongoose
   });
 
 const entrySchema = new mongoose.Schema({
-  id: Number,
   name: String,
   number: String,
 });
