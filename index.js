@@ -1,42 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const app = express();
 const cors = require("cors");
-const mongoose = require("mongoose");
 const phoneEntry = require("./models/phoneEntry");
-
-const url = process.env.MONGODB_URI;
-
-// const url = `mongodb+srv://yavuzyurtseven1:${password}@testclusterowo.nybeoyx.mongodb.net/phoneBook?retryWrites=true&w=majority&appName=TestClusterOwO`;
-
-mongoose.set("strictQuery", false);
-
-mongoose
-  .connect(url)
-  .then((result) => {
-    console.log("connected to MongoDB");
-  })
-  .catch((error) => {
-    console.log("error connecting to MongoDB:", error.message);
-  });
-
-const entrySchema = new mongoose.Schema({
-  id: Number,
-  name: String,
-  number: String,
-});
-
-entrySchema.set("toJSON", {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString();
-    delete returnedObject._id;
-    delete returnedObject.__v;
-  },
-});
-
-const phoneEntry = mongoose.model("phoneEntry", entrySchema);
-
-module.exports = mongoose.model("phoneEntry", entrySchema);
 
 app.use(cors());
 app.use(express.json());
@@ -120,7 +87,7 @@ app.post("/api/persons", (request, response) => {
   response.json(newPerson);
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
