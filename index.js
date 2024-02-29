@@ -3,19 +3,22 @@ const morgan = require("morgan");
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
+const phoneEntry = require("./models/phoneEntry");
 
-if (process.argv.length < 3) {
-  console.log("give password as argument");
-  process.exit(1);
-}
+const url = process.env.MONGODB_URI;
 
-const password = process.argv[2];
-
-const url = `mongodb+srv://yavuzyurtseven1:${password}@testclusterowo.nybeoyx.mongodb.net/phoneBook?retryWrites=true&w=majority&appName=TestClusterOwO`;
+// const url = `mongodb+srv://yavuzyurtseven1:${password}@testclusterowo.nybeoyx.mongodb.net/phoneBook?retryWrites=true&w=majority&appName=TestClusterOwO`;
 
 mongoose.set("strictQuery", false);
 
-mongoose.connect(url);
+mongoose
+  .connect(url)
+  .then((result) => {
+    console.log("connected to MongoDB");
+  })
+  .catch((error) => {
+    console.log("error connecting to MongoDB:", error.message);
+  });
 
 const entrySchema = new mongoose.Schema({
   id: Number,
@@ -32,6 +35,8 @@ entrySchema.set("toJSON", {
 });
 
 const phoneEntry = mongoose.model("phoneEntry", entrySchema);
+
+module.exports = mongoose.model("phoneEntry", entrySchema);
 
 app.use(cors());
 app.use(express.json());
