@@ -13,12 +13,14 @@ app.use(morgan("tiny"));
 morgan.token("body", (request) => JSON.stringify(request.body));
 
 const errorHandler = (error, request, response, next) => {
+  // If statusCode set it, otherwise default to 500
+  //Code derived from : https://youtu.be/WXa1yzLR3hw?si=mR8jMRqbkairPeTn
+  error.statusCode = error.statusCode || 500;
+  response.status(error.statusCode).json({
+    status: error.statusCode,
+    message: error.message,
+  });
   console.error(error.message);
-
-  if (error.name === "CastError") {
-    return response.status(400).send({ error: "malformatted id" });
-  }
-
   next(error);
 };
 
@@ -41,34 +43,53 @@ app.get("/api/persons/:id", (request, response, next) => {
       if (person) {
         response.json(person);
       } else {
-        response.status(404).end();
+        const err = new Error("Person not found");
+        err.statusCode = 404;
+        next(err);
       }
     })
     .catch((error) => {
-      next(error);
+      const err = new Error("malformatted id");
+      err.statusCode = 400;
+      next(err);
     });
 });
 
-app.delete("/api/persons/:id", (request, response) => {
-  phoneEntry
-    .findByIdAndDelete(request.params.id)
-    .then((person) => {
-      response.status(204).end();
-    })
-    .catch((error) => next(error));
+app.delete("/api/persons/:id", (request, res, next) => {
+  phoneEntry.findByIdAndDelete(request.params.id).then((response) => {
+    res.status(204).end();
+  });
 });
 
-app.post("/api/persons", (request, response) => {
+app.put("/api/persons/:id", (request, res, next) => {
+  phoneEntry
+    .findByIdAndUpdate(request.params.id, { number: request.body.number })
+    .then((response) => {
+      if (response) {
+        res.json(response);
+        console.log(response);
+      } else {
+        const err = new Error("Person No Longer exists I guess?");
+        err.statusCode = 400;
+        next(err);
+        return;
+      }
+    });
+});
+
+app.post("/api/persons", (request, res, next) => {
   const newPerson = request.body;
 
   if (!newPerson.name) {
-    return response.status(400).json({
-      error: "Person Needs A Name",
-    });
+    const err = new Error("Person Needs A Name");
+    err.statusCode = 400;
+    next(err);
+    return;
   } else if (!newPerson.number) {
-    return response.status(400).json({
-      error: "Person Needs A Number",
-    });
+    const err = new Error("Person Needs A Number");
+    err.statusCode = 400;
+    next(err);
+    return;
   }
 
   const newEntry = new phoneEntry({
@@ -77,8 +98,9 @@ app.post("/api/persons", (request, response) => {
   });
 
   newEntry.save().then((newPerson) => {
-    response.json(newPerson);
+    res.json(newPerson);
   });
+  console.log("Added To Database");
 });
 
 const PORT = process.env.PORT;
