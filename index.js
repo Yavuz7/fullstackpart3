@@ -18,7 +18,7 @@ const errorHandler = (error, request, response, next) => {
   error.statusCode = error.statusCode || 500;
   response.status(error.statusCode).json({
     status: error.statusCode,
-    message: error.message,
+    error: error.message,
   });
   console.error(error.message);
   next(error);
@@ -67,7 +67,11 @@ app.delete("/api/persons/:id", (request, res, next) => {
 
 app.put("/api/persons/:id", (request, res, next) => {
   phoneEntry
-    .findByIdAndUpdate(request.params.id, { number: request.body.number })
+    .findByIdAndUpdate(
+      request.params.id,
+      { number: request.body.number },
+      { new: true, runValidators: true, context: "query" }
+    )
     .then((response) => {
       if (response) {
         res.json(response);
@@ -96,14 +100,34 @@ app.post("/api/persons", (request, res, next) => {
     return;
   }
 
+  let arrayOfNumbers = newPerson.number.split("-");
+  if (
+    arrayOfNumbers[0].length >= 2 &&
+    arrayOfNumbers[0].length <= 3 &&
+    arrayOfNumbers.length == 2 &&
+    !isNaN(arrayOfNumbers[0]) &&
+    !isNaN(arrayOfNumbers[1])
+  ) {
+    console.log("Passed Test");
+  } else {
+    console.log("Failed Test");
+  }
+
   const newEntry = new phoneEntry({
     name: newPerson.name,
     number: newPerson.number,
   });
 
-  newEntry.save().then((newPerson) => {
-    res.json(newPerson);
-  });
+  newEntry
+    .save()
+    .then((newPerson) => {
+      res.json(newPerson);
+    })
+    .catch((error) => {
+      const err = new Error("Bad Data Oops");
+      err.statusCode = 400;
+      next(err);
+    });
   console.log("Added To Database");
 });
 
