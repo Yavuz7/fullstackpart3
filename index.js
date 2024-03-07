@@ -82,6 +82,11 @@ app.put("/api/persons/:id", (request, res, next) => {
         next(err);
         return;
       }
+    })
+    .catch((error) => {
+      const err = new Error("Bad Update Data Oops");
+      err.statusCode = 400;
+      next(err);
     });
 });
 
@@ -98,19 +103,6 @@ app.post("/api/persons", (request, res, next) => {
     err.statusCode = 400;
     next(err);
     return;
-  }
-
-  let arrayOfNumbers = newPerson.number.split("-");
-  if (
-    arrayOfNumbers[0].length >= 2 &&
-    arrayOfNumbers[0].length <= 3 &&
-    arrayOfNumbers.length == 2 &&
-    !isNaN(arrayOfNumbers[0]) &&
-    !isNaN(arrayOfNumbers[1])
-  ) {
-    console.log("Passed Test");
-  } else {
-    console.log("Failed Test");
   }
 
   const newEntry = new phoneEntry({
