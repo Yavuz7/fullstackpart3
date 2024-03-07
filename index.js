@@ -25,9 +25,13 @@ const errorHandler = (error, request, response, next) => {
 };
 
 app.get("/info", (request, response) => {
+  let persons;
   const date = new Date();
-  response.send(`<h2>Phonebook has info for ${persons.length} people!</h2><br/>
-  <p>Time Of Request: ${date} <p>`);
+  phoneEntry.find({}).then((people) => {
+    persons = people.length;
+    response.send(`<h2>Phonebook has info for ${persons} people!</h2><br/>
+    <p>Time Of Request: ${date} <p>`);
+  });
 });
 
 app.get("/api/persons", (request, response) => {
